@@ -1,0 +1,23 @@
+{
+  "name": "openpaths-parser",
+  "description": "Getting OpenPaths data into a good format.",
+  "homepage": "http://wearethoughtfox.com",
+  "keywords": [
+    "util",
+    "functional"
+  ],
+  "author": "Robert Carroll <rob@wearethoughtfox.com>",
+  "contributors": [],
+  "dependencies": {
+    "JSONStream": "^1.0.4",
+    "csvtojson": "^0.4.2",
+    "moment": "^2.10.6",
+    "openpaths-api": "0.0.1",
+    "through2": "^2.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/robertocarroll"
+  },
+  "version": "0.0.1"
+}
