@@ -1,9 +1,10 @@
 var fs = require("fs"),
 		through2 = require('through2'),
+		moment = require('moment'),
 		JSONStream = require('JSONStream');
 
-var min = 1440409344;
-var max = 1441445504;
+var min = moment('2014-07-15 00:00:00').unix();
+var max = moment('2014-08-15 00:00:00').unix();
 
 var geojson = {};
 geojson['type'] = 'FeatureCollection';
