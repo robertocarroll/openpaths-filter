@@ -3,8 +3,11 @@ var fs = require("fs"),
 		moment = require('moment'),
 		JSONStream = require('JSONStream');
 
-var min = moment('2014-07-15 00:00:00').unix();
-var max = moment('2014-08-15 00:00:00').unix();
+var dateFrom = '2014-01-01';
+var dateTo = '2014-01-31';
+
+var min = moment(dateFrom + ' 00:00:00').unix();
+var max = moment(dateTo + ' 00:00:00').unix();
 
 var geojson = {};
 geojson['type'] = 'FeatureCollection';
@@ -34,7 +37,7 @@ toGeojson.on('data', function (data) {
   });
 
 toGeojson.on('end', function () {
-		fs.writeFile('data/processed/transformed.json', JSON.stringify(geojson, null, 4), "utf8", function (err) {
+		fs.writeFile('data/processed/geojson' + dateFrom + '_' + dateTo + '.json', JSON.stringify(geojson, null, 4), "utf8", function (err) {
 			if (err) {
 				return console.log(err);
 			}

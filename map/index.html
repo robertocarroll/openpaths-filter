@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>World Map</title>
+
+ <!-- Enable responsiveness on mobile devices-->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<style>
+
+body {
+	padding: 0;
+	margin: 0;
+	background-color: #efefef;
+}
+
+.coastline {
+  fill: none;
+  stroke: #D5D5D5;
+  stroke-linejoin: round;
+}
+
+.borders {
+  fill: none;
+  stroke: #D5D5D5;
+  stroke-dasharray: 2,2;
+  stroke-linejoin: round;
+}
+
+.country {
+  fill: #fff;
+  stroke: #fff;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.subunit-label {
+  fill: #777;
+  fill-opacity: .5;
+  font-size: 20px;
+  font-weight: 300;
+  text-anchor: middle;
+}
+
+</style>
+
+</head>
+<body>
+
+  	<div id="map-no-show"></div>       	 
+
+<script src="javascripts/d3.min.js"></script>
+<script src="javascripts/topojson.v1.min.js"></script>
+<script src="javascripts/queue.v1.min.js"></script>
+
+<script>
+if('querySelector' in document
+     && 'addEventListener' in window) {
+     	var jsCheck = document.getElementById('map-no-show');
+			jsCheck.id="map"; 
+     }
+
+// Calls the resize function 
+d3.select(window).on("resize", throttle);
+
+// Set the height and width
+var padding = 5;
+var scaleSetting = 1.7;
+var width = document.getElementById('map').offsetWidth-padding;
+var height = width / scaleSetting;
+var topo, borders, places, coastline, projection, path, svg, g;
+
+
+//only load the map on devices bigger than an iphone
+if (width > 668) {
+	setup(width,height);
+}
+
+//initial setup
+function setup(width,height){
+	//Try d3.geo.azimuthalEqualArea() / d3.geo.mercator()
+  projection = d3.geo.mercator()
+    .translate([(width/2), (height/2)])
+    .scale(width / scaleSetting / Math.PI);
+
+  path = d3.geo.path().projection(projection);
+
+  svg = d3.select("#map").append("svg")
+      .attr("width", width)
+      .attr("height", height)
+      .append("g");
+
+  g = svg.append("g");
+}
+
+//Loads in the world data and the active countries
+queue()
+    .defer(d3.json, "data/data.json")
+    .await(ready);
+
+function ready(error, world) {
+	var countries = topojson.feature(world, world.objects.subunits).features;
+  topo = countries;
+
+  coastline = topojson.mesh(world, world.objects.subunits, function(a, b) { return a === b });
+
+  borders = topojson.mesh(world, world.objects.subunits, function(a, b) { return  a !== b });
+
+  var tempplaces = topojson.feature(world, world.objects.places);
+  places = tempplaces;
+
+  draw(topo, coastline, borders, places);
+}
+
+function draw(topo, coastline, borders, places) {
+
+	 g.selectAll(".country")
+	      .data(topo)
+	     .enter().append("path")
+	    	.attr("class", "country")
+	      .attr("d", path); 
+	 
+	 g.insert("path", ".graticule")
+	 		.datum(coastline)
+	 		.attr("class","coastline")
+			.attr("d", path);  
+   
+   g.insert("path", ".graticule")
+	 		.datum(borders)
+	 		.attr("class","borders")
+			.attr("d", path); 
+
+/*		g.append("path")
+    .datum(places)
+    .attr("class", "place")
+    .attr("d", path);	
+
+		g.selectAll(".subunit-label")
+	      .data(places.features)
+	     .enter().append("text")
+	    	.attr("class", function(d) { return "subunit-label " + d.id; })
+		    .attr("transform", function(d) { return "translate(" + path.centroid(d) + ")"; })
+		    .attr("dy", ".35em")
+		    .text(function(d) { return d.properties.name; });	*/
+}
+
+function redraw() {
+  width = document.getElementById('map').offsetWidth-padding;
+  height = width / scaleSetting;
+  d3.select('svg').remove();
+   if (width > 668) {	
+	  setup(width,height);
+	  draw(topo, coastline, borders);
+	}
+}
+
+var throttleTimer;
+function throttle() {
+  window.clearTimeout(throttleTimer);
+    throttleTimer = window.setTimeout(function() {
+      redraw();
+    }, 200);
+}
+
+</script>
+</body>
+</html>
