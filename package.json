@@ -13,7 +13,8 @@
     "csvtojson": "^0.4.2",
     "moment": "^2.10.6",
     "openpaths-api": "0.0.1",
-    "through2": "^2.0.0"
+    "through2": "^2.0.0",
+    "turf": "^2.0.2"
   },
   "repository": {
     "type": "git",

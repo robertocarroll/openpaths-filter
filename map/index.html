@@ -25,6 +25,11 @@ body {
   stroke-linejoin: round;
 }
 
+.pathway {
+  fill: none;
+  stroke: #ff69b4;
+}
+
 .country {
   fill: #fff;
   stroke: #fff;
@@ -45,7 +50,7 @@ body {
 </head>
 <body>
 
-  	<div id="map-no-show"></div>       	 
+  	<div id="map-no-show"></div>
 
 <script src="javascripts/d3.min.js"></script>
 <script src="javascripts/topojson.v1.min.js"></script>
@@ -55,10 +60,10 @@ body {
 if('querySelector' in document
      && 'addEventListener' in window) {
      	var jsCheck = document.getElementById('map-no-show');
-			jsCheck.id="map"; 
+			jsCheck.id="map";
      }
 
-// Calls the resize function 
+// Calls the resize function
 d3.select(window).on("resize", throttle);
 
 // Set the height and width
@@ -66,7 +71,7 @@ var padding = 5;
 var scaleSetting = 1.7;
 var width = document.getElementById('map').offsetWidth-padding;
 var height = width / scaleSetting;
-var topo, borders, places, coastline, projection, path, svg, g;
+var topo, borders, places, coastline, projection, path, svg, g, track;
 
 
 //only load the map on devices bigger than an iphone
@@ -77,11 +82,14 @@ if (width > 668) {
 //initial setup
 function setup(width,height){
 	//Try d3.geo.azimuthalEqualArea() / d3.geo.mercator()
-  projection = d3.geo.mercator()
-    .translate([(width/2), (height/2)])
-    .scale(width / scaleSetting / Math.PI);
+  projection = d3.geo.azimuthalEqualArea()
+  	.scale(1)
+    .translate([0, 0]);
+   // .translate([(width/2), (height/2)])
+   // .scale(width / scaleSetting / Math.PI);
 
-  path = d3.geo.path().projection(projection);
+  path = d3.geo.path()
+  				.projection(projection);
 
   svg = d3.select("#map").append("svg")
       .attr("width", width)
@@ -94,9 +102,11 @@ function setup(width,height){
 //Loads in the world data and the active countries
 queue()
     .defer(d3.json, "data/data.json")
+    .defer(d3.json, "data/geodata.json")
     .await(ready);
 
-function ready(error, world) {
+function ready(error, world, tracktemp) {
+
 	var countries = topojson.feature(world, world.objects.subunits).features;
   topo = countries;
 
@@ -104,34 +114,50 @@ function ready(error, world) {
 
   borders = topojson.mesh(world, world.objects.subunits, function(a, b) { return  a !== b });
 
-  var tempplaces = topojson.feature(world, world.objects.places);
-  places = tempplaces;
+  /*var tempplaces = topojson.feature(world, world.objects.places);
+  places = tempplaces;*/
 
-  draw(topo, coastline, borders, places);
+  track = tracktemp;
+
+  draw(topo, coastline, borders, track);
 }
 
-function draw(topo, coastline, borders, places) {
+function draw(topo, coastline, borders, track) {
+
+	var b = path.bounds(track),
+    s = .95 / Math.max((b[1][0] - b[0][0]) / width, (b[1][1] - b[0][1]) / height),
+    t = [(width - s * (b[1][0] + b[0][0])) / 2, (height - s * (b[1][1] + b[0][1])) / 2];
+
+  projection
+    .scale(s)
+    .translate(t);
 
 	 g.selectAll(".country")
 	      .data(topo)
 	     .enter().append("path")
 	    	.attr("class", "country")
-	      .attr("d", path); 
-	 
+	      .attr("d", path);
+
 	 g.insert("path", ".graticule")
 	 		.datum(coastline)
 	 		.attr("class","coastline")
-			.attr("d", path);  
-   
+			.attr("d", path);
+
    g.insert("path", ".graticule")
 	 		.datum(borders)
 	 		.attr("class","borders")
-			.attr("d", path); 
+			.attr("d", path);
+
+		g.append("path")
+	 		.datum(track)
+	 		.attr("class","pathway")
+			.attr("d", path);
+
 
 /*		g.append("path")
     .datum(places)
     .attr("class", "place")
-    .attr("d", path);	
+    .attr("d", path);
 
 		g.selectAll(".subunit-label")
 	      .data(places.features)
@@ -146,9 +172,9 @@ function redraw() {
   width = document.getElementById('map').offsetWidth-padding;
   height = width / scaleSetting;
   d3.select('svg').remove();
-   if (width > 668) {	
+   if (width > 668) {
 	  setup(width,height);
-	  draw(topo, coastline, borders);
+	  draw(topo, coastline, borders, track);
 	}
 }
 

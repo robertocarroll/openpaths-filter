@@ -37,7 +37,7 @@ toGeojson.on('data', function (data) {
   });
 
 toGeojson.on('end', function () {
-		fs.writeFile('data/processed/geojson' + dateFrom + '_' + dateTo + '.json', JSON.stringify(geojson, null, 4), "utf8", function (err) {
+		fs.writeFile('map/data/geodata.json', JSON.stringify(geojson, null, 4), "utf8", function (err) {
 			if (err) {
 				return console.log(err);
 			}
@@ -45,9 +45,9 @@ toGeojson.on('end', function () {
     console.log("Finished - " + geojson['features'].length + " points parsed");
   });
 
-fs.createReadStream('data/raw/openpaths_robertocarroll.json', { encoding: 'utf8' })
+fs.createReadStream('data/openpaths_robertocarroll.json', { encoding: 'utf8' })
 	.pipe(JSONStream.parse('*'))
   .pipe(toGeojson);
-  
+
 
 
